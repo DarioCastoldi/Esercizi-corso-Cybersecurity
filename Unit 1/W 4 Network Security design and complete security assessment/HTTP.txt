@@ -1,0 +1,73 @@
+import requests
+import time
+import sys
+
+# IP -> URL - PER METODO OPTIONS
+def http_verb():
+    host = input('Inserire IP del target: ')
+    url = f'http://{host}'
+
+    try:
+        risposta_options = requests.options(url)
+
+        # PROVA DEL METODO OPTIONS
+        if 'allow' in risposta_options.headers:
+            metodi_attivi = risposta_options.headers['allow']
+            print(f'I seguenti metodi HTTP sono abilitati: {metodi_attivi}')
+
+        # PROVA DI OGNI METODO SINGOLARMENTE
+        else:
+            print("Il metodo OPTIONS non è attivo, provare ad inserire IP e PATH del target")
+            verbi = ["GET","HEAD","POST","PUT","DELETE","CONNECT","PATCH","OPTIONS","TRACE"]
+            path = input("Inserisci il path da scansionare: ")
+            porta = input("Inserire porta da scansionare (default 80): ")
+            if porta == "":
+                porta = 80
+
+            for verbo in verbi:
+                risposta = requests.request(verbo, f"http://{host}:{porta}{path}")
+
+                # RISPOSTA
+                if risposta.status_code > 199 and risposta.status_code < 228:
+                    print(f"Metodo {verbo} è abilitato", risposta.status_code)
+                else:
+                    print(f"Metodo {verbo} non è abilitato", risposta.status_code)
+
+    except requests.exceptions.RequestException:
+        tentativi = 1
+        while True:
+            if tentativi > 10:
+                scelta = input("Non è stato possibile stabilire una connessione dopo 10 tentativi. Premere un tasto qualunque per riprovare o 'q' per uscire: ")
+                if scelta == 'q':
+                    sys.exit()
+                else:
+                    main()
+            else:
+                print(f"Impossibile stabilire una connessione. Tentativo {tentativi}/10...")
+                tentativi += 1
+                time.sleep(1)
+                try:
+                    requests.get(url)
+                    break
+                except requests.exceptions.RequestException:
+                    pass
+
+    # SCELTA DELL'UTENTE, SE RIAVVIARE O MENO
+    tentativi = 1
+    while True:
+        if tentativi > 10:
+            scelta = input("Non è stato possibile stabilire una connessione dopo 10 tentativi. Premere un tasto qualunque per riprovare o 'q' per uscire: ")
+            if scelta == 'q':
+                sys.exit()
+            else:
+                tentativi = 1
+        else:
+            time.sleep(1)
+            try:
+                requests.get(url)
+                break
+            except requests.exceptions.RequestException:
+                print(f"Impossibile stabilire una connessione. Tentativo {tentativi}/10...")
+                tentativi += 1
+
+http_verb()

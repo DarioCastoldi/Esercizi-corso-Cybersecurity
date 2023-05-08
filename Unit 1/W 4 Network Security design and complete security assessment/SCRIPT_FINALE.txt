@@ -1,0 +1,93 @@
+# LIBRERIE
+
+import mechanicalsoup
+
+import time
+
+import requests
+
+
+
+
+
+def main():
+
+    print("Benvenuto!\nQuesto programma consente all'utente di effettuare: \n1. Uno scan delle porte su un IP target. \n2.Uno scan dei verbi HTTP attivi su una URL target. \n3. Eseguire un attacco di tipo bruteforce(dictionary).\n0. USCIRE DAL PROGRAMMA.")
+
+    
+
+    scelta = int(input("INSERIRE LA SCELTA QUI: "))
+
+    
+
+    
+
+    if scelta == 1:
+
+        import PORT_SCANNER
+
+        
+
+    elif scelta == 2:
+
+        from HTTP import http_verb
+
+    
+
+    elif scelta == 3:
+
+        def sito():
+
+            scelta_brute_force = int(input("Selezionare su che sito effettuare il brute force: "))
+
+                
+
+            if scelta_brute_force == 1:
+
+                print("Selezionato DVWA\n")
+
+                import brute_force_dvwa
+
+                
+
+            elif scelta_brute_force == 2:
+
+                print("Selezionato PHPMYADMIN\n")
+
+                from phpMyAdmin import brute_force_phpMyAdmin
+
+        
+
+            else:
+
+                print("SITO NON DISPONIBILE, RIPROVA!\n")
+
+                sito()
+
+            
+
+        sito()            
+
+    
+
+    elif scelta == 0:
+
+        print("USCITA IN CORSO...")
+
+        exit()
+
+        
+
+    else:
+
+       print("Scelta non valida.")
+
+       main()
+
+        
+
+    
+
+if __name__ == "__main__":
+
+    main()

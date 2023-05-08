@@ -1,0 +1,134 @@
+# [STA] MODULES
+import socket
+import time
+# [END] MODULES
+
+# [STA] CREATES A CONNECTION
+# STREAM = TCP; DGRAM = UDP
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# [END] CREATES A CONNECTION
+
+# [STA] BLOCKS
+# [STA] SETS TARGET MACHINE
+def block_host():
+	global host
+	host = input("\nSet target IP address: ")# Sets the value permanently
+	block_scan()
+	return
+# [END] SETS TARGET MACHINE
+# [STA] PORT SCAN
+def block_scan():
+	print("\n")
+	print("="*41)
+	print("=============== NEW SCAN ================")
+##### [STA] USER INPUT
+####### [STA] VALIDITY CHECK
+	def set_port_range():
+		start_port = None
+		end_port = None
+		while start_port is None or end_port is None or start_port > end_port:
+			start_port = input("Set starting port: ")
+			try:
+				start_port = int(start_port)
+			except:
+				start_port = None
+				print("Starting port must be a valid number!")
+			end_port = input("Set ending port: ")
+			try:
+				end_port = int(end_port)
+			except:
+				end_port = None
+				print("Ending port must be a valid number!")
+			if start_port is not None and end_port is not None and start_port > end_port:
+				print("Starting port must be lower than ending port!")
+		port_range = range(start_port, end_port+1)
+		return port_range
+#######	[END] VALIDITY CHECKS
+##### [END] USER INPUT
+##### [STA] VARIABLES
+	port_range = set_port_range()# Sets port range
+	start_port = port_range[0]# Sets start port
+	end_port = port_range[-1]# Sets end port
+	port_range = list(port_range)# Converts port range to list
+##### [END] VARIABLES SETUP
+	print("\nStarting scan on host:", host)# Recaps selected host
+	print("Selected ports: ", start_port, "-", end_port)# Recaps port range
+##### print("Ports scanned: ", port_range) # PRINTS a LIST of ports
+
+##### [STA] SETS TIMEOUT TO DETERMINE IF A PORT IS CLOSED
+	def is_port_open(host, port):
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.settimeout(5)
+		try:
+			s.connect((host, port))
+			s.shutdown(2)
+			return True
+		except:
+			return False
+##### [END] SETS TIMEOUT TO DETERMINE IF A PORT IS CLOSED
+	print("================ REPORT =================")
+##### [STA] PORT ANALYSIS
+	closed_ports = []# Creates a list of closed_ports
+	start = time.time()# Starts scan time
+	for port in range(start_port, end_port+1) :
+			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			result = s.connect_ex ((host, port))
+			if result == 0:
+					service = socket.getservbyport(port)# Gets the service active on the checked port
+					print ("Port " + str(port) + " is open on", str(service))# Returns port and service
+			else:
+					closed_ports.append(port)# Queues the closed port on the list
+			s.close()# Ends the "for" cycle
+	print("\nCLOSED PORTS:", closed_ports)# Prints the list of closed ports
+	print("\n- Ports checked:", start_port, "-", end_port)# Recaps port range
+##### print("Selected ports: ", list(port_range))# PRINTS EVERY SINGLE PORT
+	end = time.time()# Stops the scan time
+	print(f"- Time taken: {end-start:.2f} secs")
+	print("============== END OF SCAN ==============")
+	print("="*41)
+	print("\n")
+	block_remenu()
+# [END] SCAN
+# [STA] REMENU
+def block_remenu():
+	print("Do you want to run another scan?")
+	print("1. Yes, on the same IP")
+	print("2. Yes, on another IP")
+	print("3. No, I want to quit")
+	user_choice = None# Initialize user_choice to "None"
+### [STA] VALIDITY CHECK
+	while user_choice not in (1, 2, 3):# Use not in instead of in
+		user_choice = input("Your choice: ")
+		try:
+			user_choice = int(user_choice)  # Use assignment instead of comparison
+		except:
+			user_choice = None
+			print("Pick a valid choice!")
+### [END] VALIDITY CHECK	
+	if user_choice == 1:
+		return block_scan()
+	elif user_choice == 2:
+		return block_host()
+	else:
+		return block_end()
+###	[END] VALIDITY CHECKS
+# [END] REMENU
+# [STA] END
+def block_end():
+	print("="*41)
+	print("================ GOODBYE! ===============")
+	print("============= END OF PROGRAM ============")
+	print("="*41)
+# [END] END
+# [END] BLOCKS
+
+# [STA] HEADER
+print("="*41)
+print("This script will launch a TCP port scan,")
+print("returning the status of every open port")
+print("that is within the selected scan range,")
+print("grouping the closed ports into a list")
+print("====== Written by LV @ 230215-0730 ======")
+print("="*41)
+block_host()
+# [STA] HEADER
